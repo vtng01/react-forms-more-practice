@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import validator from "validator";
 
 export default function Registration() {
   const [name, setName] = useState("");
@@ -8,10 +9,69 @@ export default function Registration() {
   const [role, setRole] = useState("");
   const [bio, setBio] = useState("");
   const [signUp, setSignUp] = useState(false);
+  const [validationErrors, setValidationErrors] = useState([]);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  useEffect(() => {
+    const errors = [];
+
+    if (name.length === 0) errors.push("Please enter valid name");
+
+    if (!validator.isEmail(email)) errors.push("Please enter valid email");
+
+    if (phoneNumber.length && phoneNumber.length < 11)
+      errors.push("Enter valid phone number");
+
+    if (phoneNumber.length && phoneType === "")
+      errors.push("Please provide phone type");
+
+    setValidationErrors(errors);
+  }, [name, email, phoneNumber, phoneType]);
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    setHasSubmitted(true);
+
+    if (validationErrors.length) return alert("Cannot Submit");
+
+    const info = {
+      name,
+      email,
+      phoneNumber,
+      phoneType,
+      role,
+      bio,
+      signUp,
+      submittedOn: new Date(),
+    };
+
+    console.log(info);
+    alert("Successful registered!");
+
+    setName("");
+    setEmail("");
+    setPhoneNumber("");
+    setPhoneType("");
+    setRole("");
+    setBio("");
+    setSignUp(false);
+    setValidationErrors([]);
+    setHasSubmitted(false);
+  };
 
   return (
     <section className="registration-form">
-      <form>
+      <form onSubmit={onSubmit}>
+        {hasSubmitted && validationErrors.length > 0 && (
+          <section className="errors">
+            <p>The following errors were found:</p>
+            <ul>
+              {validationErrors.map((e) => (
+                <li key={e}>{e}</li>
+              ))}
+            </ul>
+          </section>
+        )}
         <section>
           <label htmlFor="name">Name: </label>
           <input
@@ -40,6 +100,7 @@ export default function Registration() {
             onChange={(e) => setPhoneNumber(e.target.value)}
             value={phoneNumber}
             placeholder="enter your phoneNumber"
+            maxLength="11"
           />
           <select
             name="phoneType"
@@ -80,6 +141,7 @@ export default function Registration() {
             name="bio"
             onChange={(e) => setBio(e.target.value)}
             value={bio}
+            maxLength="280"
           ></textarea>
         </section>
         <section>
